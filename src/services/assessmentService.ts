@@ -319,6 +319,27 @@ export const assessmentService = {
     return newAss;
   },
 
+  async getActiveAssessment(profileId: string): Promise<Assessment | null> {
+    return this.getOrCreateAssessment(profileId);
+  },
+
+  async getLatestAssessment(profileId: string): Promise<Assessment | null> {
+    if (isSupabaseConfigured()) {
+      const { data } = await sb
+        .from('assessments')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) return data as Assessment;
+    }
+
+    const assessments = getLocal<Assessment[]>(STORAGE_KEYS.ASSESSMENTS, []);
+    const userAssessments = assessments.filter((a) => a.profile_id === profileId);
+    return userAssessments.length > 0 ? userAssessments[userAssessments.length - 1] : null;
+  },
+
   async saveAnswer(assessmentId: string, questionId: string, optionId: string, value: number): Promise<AssessmentAnswer> {
     if (isSupabaseConfigured()) {
       const { data, error } = await sb

@@ -17,11 +17,11 @@ import { NotFoundPage } from '@/pages/public/NotFoundPage';
 import { RegisterPage } from '@/pages/public/RegisterPage';
 import { AssessmentPage } from '@/pages/student/AssessmentPage';
 import { DashboardHome } from '@/pages/student/DashboardHome';
+import { RecommendationsPage } from '@/pages/student/RecommendationsPage';
 import {
   StudentCareersShell,
   StudentFeedbackShell,
   StudentHistoryShell,
-  StudentRecommendationsShell,
   StudentSkillGapShell,
 } from '@/pages/student/StudentModulePlaceholders';
 import { ProfilePage } from '@/pages/student/ProfilePage';
@@ -53,7 +53,7 @@ export const AppRoutes: React.FC = () => {
         <Route index element={<DashboardHome />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="assessment" element={<AssessmentPage />} />
-        <Route path="recommendations" element={<StudentRecommendationsShell />} />
+        <Route path="recommendations" element={<RecommendationsPage />} />
         <Route path="careers" element={<StudentCareersShell />} />
         <Route path="skill-gap" element={<StudentSkillGapShell />} />
         <Route path="history" element={<StudentHistoryShell />} />

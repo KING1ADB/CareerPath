@@ -20,18 +20,37 @@ import {
   User,
   Zap,
 } from 'lucide-react';
-import React from 'react';
+import { recommendationEngine } from '@/services/recommendationEngine';
+import type { Recommendation } from '@/types';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export const DashboardHome: React.FC = () => {
   const { profile } = useAuth();
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [isLoadingRecs, setIsLoadingRecs] = useState(false);
+
+  useEffect(() => {
+    if (!profile) return;
+    setIsLoadingRecs(true);
+    recommendationEngine
+      .getLatestRecommendations(profile.id)
+      .then((res) => {
+        setRecommendations(res.recommendations);
+      })
+      .catch((err) => console.error('Error fetching dashboard recommendations:', err))
+      .finally(() => setIsLoadingRecs(false));
+  }, [profile?.id]);
+
+  const hasRecs = recommendations.length > 0;
+  const topThree = recommendations.slice(0, 3);
 
   const steps = [
     { title: 'Personal Profile', completed: Boolean(profile?.university && profile?.major), path: '/dashboard/profile' },
     { title: 'Skills Inventory', completed: true, path: '/dashboard/assessment' },
     { title: 'Interests & Strengths', completed: true, path: '/dashboard/assessment' },
-    { title: 'Work Personality', completed: false, path: '/dashboard/assessment' },
-    { title: 'Recommendations', completed: false, path: '/dashboard/recommendations' },
+    { title: 'Work Personality', completed: hasRecs, path: '/dashboard/assessment' },
+    { title: 'Recommendations', completed: hasRecs, path: '/dashboard/recommendations' },
   ];
 
   return (
@@ -176,56 +195,92 @@ export const DashboardHome: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              {
-                title: 'Software Engineer',
-                industry: 'Technology',
-                match: '94% Compatibility',
-                skills: ['Python', 'JavaScript/TypeScript', 'SQL'],
-                slug: 'software-engineer',
-              },
-              {
-                title: 'Data Scientist',
-                industry: 'Technology / Analytics',
-                match: '89% Compatibility',
-                skills: ['Statistics', 'Machine Learning', 'Data Visualization'],
-                slug: 'data-scientist',
-              },
-              {
-                title: 'Product Manager',
-                industry: 'Business & Technology',
-                match: '85% Compatibility',
-                skills: ['Agile Leadership', 'Market Analysis', 'Communication'],
-                slug: 'product-manager',
-              },
-            ].map((c) => (
-              <div
-                key={c.title}
-                className="p-4 rounded-xl border border-slate-200 hover:border-teal-400 bg-white hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-sm text-navy-950">{c.title}</h4>
-                    <Badge variant="teal" className="text-[10px]">{c.match}</Badge>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{c.industry}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {c.skills.map((sk) => (
-                      <span key={sk} className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
-                        {sk}
+            {hasRecs ? (
+              topThree.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="p-4 rounded-xl border border-slate-200 hover:border-teal-400 bg-white hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+                        Rank #{rec.rank}
                       </span>
-                    ))}
+                      <h4 className="font-semibold text-sm text-navy-950">{rec.career?.title}</h4>
+                      <Badge variant="teal" className="text-[10px] font-mono">
+                        {rec.overall_score}% Match
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">{rec.career?.industry}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {rec.explanation?.matching_skills.slice(0, 3).map((sk) => (
+                        <span key={sk.skill_id} className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-100">
+                          {sk.name} ({sk.match_percentage}%)
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <Link to="/dashboard/assessment">
-                  <Button size="sm" variant="outline" className="text-xs text-teal-700 border-teal-200 hover:bg-teal-50 shrink-0">
-                    Run Assessment Match
-                    <ChevronRight className="h-3 w-3 ml-1" />
-                  </Button>
-                </Link>
-              </div>
-            ))}
+                  <Link to="/dashboard/recommendations">
+                    <Button size="sm" variant="outline" className="text-xs text-teal-700 border-teal-200 hover:bg-teal-50 shrink-0">
+                      View Explainability
+                      <ChevronRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              ))
+            ) : (
+              [
+                {
+                  title: 'Software Engineer',
+                  industry: 'Technology',
+                  match: '94% Compatibility',
+                  skills: ['Python', 'JavaScript/TypeScript', 'SQL'],
+                  slug: 'software-engineer',
+                },
+                {
+                  title: 'Data Scientist',
+                  industry: 'Technology / Analytics',
+                  match: '89% Compatibility',
+                  skills: ['Statistics', 'Machine Learning', 'Data Visualization'],
+                  slug: 'data-scientist',
+                },
+                {
+                  title: 'Product Manager',
+                  industry: 'Business & Technology',
+                  match: '85% Compatibility',
+                  skills: ['Agile Leadership', 'Market Analysis', 'Communication'],
+                  slug: 'product-manager',
+                },
+              ].map((c) => (
+                <div
+                  key={c.title}
+                  className="p-4 rounded-xl border border-slate-200 hover:border-teal-400 bg-white hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-sm text-navy-950">{c.title}</h4>
+                      <Badge variant="teal" className="text-[10px]">{c.match}</Badge>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">{c.industry}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {c.skills.map((sk) => (
+                        <span key={sk} className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
+                          {sk}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Link to="/dashboard/assessment">
+                    <Button size="sm" variant="outline" className="text-xs text-teal-700 border-teal-200 hover:bg-teal-50 shrink-0">
+                      Run Assessment Match
+                      <ChevronRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 

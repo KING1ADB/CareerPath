@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { assessmentService } from '@/services/assessmentService';
+import { recommendationEngine } from '@/services/recommendationEngine';
 import { taxonomyService } from '@/services/taxonomyService';
 import {
   ArrowRight,
@@ -75,10 +76,11 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({ profileId })
     setIsFinalizing(true);
     try {
       await assessmentService.completeAssessment(assessmentId, profileId);
-      setCompletionNotice('Assessment finalized & snapshots frozen successfully.');
+      await recommendationEngine.calculateRecommendations(profileId, assessmentId);
+      setCompletionNotice('Assessment finalized, snapshots frozen, and recommendations calculated!');
       setTimeout(() => {
         navigate('/dashboard/recommendations');
-      }, 1200);
+      }, 1000);
     } catch (err: any) {
       alert(err.message || 'Failed to finalize assessment');
     } finally {
