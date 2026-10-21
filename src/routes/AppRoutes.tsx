@@ -15,16 +15,16 @@ import { LandingPage } from '@/pages/public/LandingPage';
 import { LoginPage } from '@/pages/public/LoginPage';
 import { NotFoundPage } from '@/pages/public/NotFoundPage';
 import { RegisterPage } from '@/pages/public/RegisterPage';
+import { AssessmentPage } from '@/pages/student/AssessmentPage';
 import { DashboardHome } from '@/pages/student/DashboardHome';
 import {
-  StudentAssessmentShell,
   StudentCareersShell,
   StudentFeedbackShell,
   StudentHistoryShell,
-  StudentProfileShell,
   StudentRecommendationsShell,
   StudentSkillGapShell,
 } from '@/pages/student/StudentModulePlaceholders';
+import { ProfilePage } from '@/pages/student/ProfilePage';
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
@@ -51,8 +51,8 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<DashboardHome />} />
-        <Route path="profile" element={<StudentProfileShell />} />
-        <Route path="assessment" element={<StudentAssessmentShell />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="assessment" element={<AssessmentPage />} />
         <Route path="recommendations" element={<StudentRecommendationsShell />} />
         <Route path="careers" element={<StudentCareersShell />} />
         <Route path="skill-gap" element={<StudentSkillGapShell />} />
