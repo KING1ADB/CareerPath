@@ -746,7 +746,20 @@ export const careerService = {
         .order('title');
 
       if (!error && data && data.length > 0) {
-        return data as Career[];
+        const hasDbRequirements = data.some((c: any) => c.career_skills && c.career_skills.length > 0);
+        if (hasDbRequirements) {
+          return data as Career[];
+        }
+        // Fallback-merge requirements matrix by slug if migration 4 has not been executed yet
+        return (data as Career[]).map((dbCareer) => {
+          const seedMatch = SEED_CAREERS.find((s) => s.slug === dbCareer.slug);
+          return {
+            ...dbCareer,
+            career_skills: seedMatch?.career_skills || [],
+            career_interests: seedMatch?.career_interests || [],
+            career_academic_strengths: seedMatch?.career_academic_strengths || [],
+          };
+        });
       }
     }
     return SEED_CAREERS;

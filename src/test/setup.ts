@@ -6,6 +6,10 @@ afterEach(() => {
   cleanup();
 });
 
+// Isolate unit tests from live database calls so tests remain fast and deterministic
+import.meta.env.VITE_SUPABASE_URL = 'https://placeholder-project.supabase.co';
+import.meta.env.VITE_SUPABASE_ANON_KEY = 'mock-anon-key-for-development';
+
 // Mock matchMedia for responsive UI tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
